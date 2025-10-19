@@ -150,7 +150,16 @@ class WosCrawler:
                     )
                 )
                 # crawl
-                crawled_count += self.crawl_page(school, address)
+                page_data = self.crawl_page(address)
+                crawled_count_plus = self.save_data(page_data, school)
+                if not crawled_count_plus: # 保存失败，如冲突
+                    self.to_page(i) # 回到当前页重试
+                    page_data = self.crawl_page(address)
+                    crawled_count_plus = self.save_data(page_data, school)
+                if not crawled_count_plus:
+                    print(f"{address} Failed saving data on page {i}")
+                    crawled_count_plus = self.save_data_single(page_data, school)
+                crawled_count += crawled_count_plus
                 print(f"{address}:\t{i}/{page_count}-{crawled_count}/{result_count}")
                 self.next_page()
         if result_count <= page_count * 50:
@@ -170,13 +179,13 @@ class WosCrawler:
             ''', (url, result_count, page_count, address))
             conn.commit()
         except Exception as e:
+            conn.rollback()
             print("Error setting crawled:", e)
         finally:
             conn.close()
 
-    def crawl_page(self, school, address):
+    def crawl_page(self, address):
         # Extract data from the page
-        crawled_count = 0
         data = []  # Placeholder for extracted data
         base_xpath = "//app-records-list/app-record"
         page_length = len(self.driver.find_elements(By.XPATH, base_xpath))
@@ -287,13 +296,8 @@ class WosCrawler:
                             abstract += '\n' + para
             except:
                 abstract = None
-
             data.append((address, title, authors, pub_date, conference, source, citations, refs, wos_id, abstract))
-            crawled_count += 1
-        self.save_data(data, school)
-        # 释放data
-        data.clear()
-        return crawled_count
+        return data
 
     def save_data(self, data, school):
         try:
@@ -303,18 +307,34 @@ class WosCrawler:
                 INSERT INTO {} (address, title, authors, pub_date, conference, source, citations, refs, wos_id, abstract) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
             '''.format(school), data)
             conn.commit()
+            return len(data)
         except Exception as e:
+            conn.rollback()
             print("Error saving data:", e)
-            for record in data:
+            return False
+        finally:
+            conn.close()
+    
+    def save_data_single(self, data_batch, school):
+        crawled_count = 0
+        try:
+            conn = sqlite3.connect('data.db')
+            cursor = conn.cursor()
+            for data in data_batch:
                 try:
                     cursor.execute('''
                         INSERT INTO {} (address, title, authors, pub_date, conference, source, citations, refs, wos_id, abstract) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-                    '''.format(school), record)
+                    '''.format(school), data)
                     conn.commit()
+                    crawled_count += 1
                 except Exception as e:
-                    print("Error saving single record:", e)
+                    conn.rollback()
+                    print("Error saving single data:", e)
+        except Exception as e:
+            print("Error in save_data_single:", e)
         finally:
             conn.close()
+            return crawled_count
 
     def next_page(self, direction='bottom'):
         if direction == 'bottom':
@@ -396,7 +416,7 @@ class WosCrawler:
         self.driver.quit()
 
 if __name__ == "__main__":
-    # crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
+    # crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
     # crawler.crawl()
     while True:
         try:
