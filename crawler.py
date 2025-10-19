@@ -126,6 +126,9 @@ class WosCrawler:
         search_button = self.driver.find_element(By.XPATH, "//div[@class='upper-search-preview-holder']//div[@class='button-row adv ng-star-inserted']//button[@mat-ripple-loader-class-name='mat-mdc-button-ripple'][2]")
         search_button.click()
         time.sleep(1 / self.efficiency)
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//span[@class='brand-blue']"))
+        )
         # 获取基本数据
         result_count = int(self.driver.find_element(By.XPATH, "//span[@class='brand-blue']").text.replace(',', ''))
         page_count = int(self.driver.find_element(By.XPATH, "//span[@class='end-page ng-star-inserted']").text.replace(',', ''))
@@ -134,7 +137,7 @@ class WosCrawler:
         
         crawled_count = 0
         crawled_page_count = self.continue_crawl(school, address)
-        self.to_page(crawled_page_count + 1)
+        self.to_page(crawled_page_count + 1 if crawled_page_count else 0)
         # 开始翻页爬取
         for i in range(1, page_count + 1):
             if crawled_page_count and i <= crawled_page_count:
@@ -211,22 +214,17 @@ class WosCrawler:
             except:
                 pass
             # 开始爬取各字段
-            # WebDriverWait(self.driver, 10).until(
-            #    EC.presence_of_element_located(
-            #        (By.XPATH, title_xpath)
-            #    )
-            #)
+            WebDriverWait(self.driver, 10).until(
+               EC.presence_of_element_located(
+                   (By.XPATH, title_xpath)
+               )
+            )
             title = self.driver.find_element(By.XPATH, title_xpath).text
             wos_id = self.driver.find_element(By.XPATH, wos_id_xpath).get_attribute('href').split('WOS:')[-1]
             # //app-records-list/app-record//a[@class='mat-mdc-tooltip-trigger authors ng-star-inserted']//span
             # //app-records-list/app-record//app-summary-authors/div/span
             authors = []
             authors_length = len(self.driver.find_elements(By.XPATH, author_xpath))
-            # if authors_length == 0:
-            #     authors = None
-            # elif authors_length == 1:
-            #     authors = self.driver.find_element(By.XPATH, author_xpath).text
-            # else:
             for j in range(authors_length):
                 author = self.driver.find_element(By.XPATH, f"{author_xpath}[{j + 1}]//span").text
                 authors.append(author)
@@ -315,8 +313,10 @@ class WosCrawler:
             self.driver.execute_script("arguments[0].scrollIntoView();", next_button)
             time.sleep(0.2 / self.efficiency)
             next_button.click()
+            time.sleep(1 / self.efficiency)
         except Exception as e:
             self.driver.execute_script("arguments[0].click();", next_button)
+            time.sleep(1 / self.efficiency)
     
     def to_page(self, page_num):
         WebDriverWait(self.driver, 10).until(
@@ -327,6 +327,7 @@ class WosCrawler:
         page_input = self.driver.find_element(By.XPATH, "//input[@id='snNextPageTop']")
         page_input.clear()
         page_input.send_keys(str(page_num))
+        page_input.send_keys('\n')
         time.sleep(1 / self.efficiency)
 
     def accept_cookies(self):
@@ -380,5 +381,12 @@ class WosCrawler:
         self.driver.quit()
 
 if __name__ == "__main__":
-    crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
-    crawler.crawl()
+    # crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
+    # crawler.crawl()
+    while True:
+        try:
+            crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
+            crawler.crawl()
+        except Exception as e:
+            print("Error occurred:", e)
+            time.sleep(5)
