@@ -77,6 +77,14 @@ cursor.execute('''
         abstract TEXT
     );
 ''')
+conn.commit()
 
+with open('THU.txt', 'r') as file:
+    for line in file:
+        address = line.strip()
+        cursor.execute('''
+            INSERT INTO infos (school, address) VALUES
+            ('THU', ?)
+        ''', (address,))
 conn.commit()
 conn.close()
