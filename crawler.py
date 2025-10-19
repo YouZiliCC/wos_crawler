@@ -390,6 +390,7 @@ class WosCrawler:
             #     continue
             if success:
                 count += 1
+                time.sleep(5 / self.efficiency)
             if self.once_want and count >= self.once_want:
                 break
         self.driver.quit()
