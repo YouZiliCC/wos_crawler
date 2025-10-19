@@ -11,11 +11,11 @@ class WosCrawler:
         self.total_address = 0
         self.total_url = 0
         self.total_crawled = 0
-        self.driver = self.init_chrome(headless=headless)
+        self.driver = self.init_driver(headless=headless)
         self.efficiency = efficiency # 控制爬取速度，sep_time = time / efficiency
         self.once_want = once_want # 每次想要爬取的数量，None表示全部爬取
 
-    def init_chrome(self, headless=True):
+    def init_driver(self, headless=True):
         options = webdriver.ChromeOptions()
         # 1) 无头 + 窗口大小
         if headless:
@@ -42,6 +42,14 @@ class WosCrawler:
         # 5) 只创建一次 driver
         return webdriver.Chrome(options=options)
     
+    def restart_driver(self, headless=True):
+        try:
+            self.driver.quit()
+        except:
+            pass
+        print("Restart driver")
+        self.driver = self.init_driver(headless=headless)
+
     def fetch_info(self):
         """
         尝试获取所有需爬取机构的信息
@@ -125,18 +133,23 @@ class WosCrawler:
         time.sleep(0.5 / self.efficiency)
         
         crawled_count = 0
+        crawled_page_count = self.continue_crawl(school, address)
+        self.to_page(crawled_page_count + 1)
         # 开始翻页爬取
         for i in range(1, page_count + 1):
-            # 跳转页
-            WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located(
-                    (By.XPATH, "//app-records-list")
+            if crawled_page_count and i <= crawled_page_count:
+                crawled_count += 50
+                print(f"{address}:\t{i}/{page_count}-{crawled_count}/{result_count} (continued)")
+            else:
+                WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located(
+                        (By.XPATH, "//app-records-list")
+                    )
                 )
-            )
-            # crawl
-            crawled_count += self.crawl_page(school, address)
-            print(f"{address}:\t{i}/{page_count}-{crawled_count}/{result_count}")
-            self.next_page()
+                # crawl
+                crawled_count += self.crawl_page(school, address)
+                print(f"{address}:\t{i}/{page_count}-{crawled_count}/{result_count}")
+                self.next_page_b()
         if result_count <= page_count * 50:
             self.set_crawled(address, url=base_url, result_count=result_count, page_count=page_count)
             print(f"{address} Successed")
@@ -168,7 +181,7 @@ class WosCrawler:
         for i in range(page_length):
             item_xpath = f"{base_xpath}[{i + 1}]"
             btn_xpath = f"{item_xpath}//button[contains(@class,'show-more')]"
-            title_xpath = f"{item_xpath}//a[@data-ta='summary-record-title-link']"
+            title_xpath = f"{item_xpath}//a[contains(@class, 'title')]"
             wos_id_xpath = title_xpath
             author_xpath = f"{item_xpath}//a[@class='mat-mdc-tooltip-trigger authors ng-star-inserted']"
             sep_xpath = f"{item_xpath}//app-summary-authors/div/span"
@@ -291,7 +304,17 @@ class WosCrawler:
         finally:
             conn.close()
 
-    def next_page(self):
+    def next_page_t(self):
+        # //button[@aria-label="Top Next Page"]
+        next_button = self.driver.find_element(By.XPATH, "//button[@aria-label='Top Next Page']")
+        try:
+            self.driver.execute_script("arguments[0].scrollIntoView();", next_button)
+            time.sleep(0.2 / self.efficiency)
+            next_button.click()
+        except Exception as e:
+            self.driver.execute_script("arguments[0].click();", next_button)
+
+    def next_page_b(self):
         # //button[@aria-label="Bottom Next Page"]
         next_button = self.driver.find_element(By.XPATH, "//button[@aria-label='Bottom Next Page']")
         try:
@@ -300,6 +323,17 @@ class WosCrawler:
             next_button.click()
         except Exception as e:
             self.driver.execute_script("arguments[0].click();", next_button)
+    
+    def to_page(self, page_num):
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located(
+                (By.XPATH, "//input[@id='snNextPageTop']")
+            )
+        )
+        page_input = self.driver.find_element(By.XPATH, "//input[@id='snNextPageTop']")
+        page_input.clear()
+        page_input.send_keys(str(page_num))
+        time.sleep(1 / self.efficiency)
 
     def accept_cookies(self):
         try:
@@ -310,6 +344,23 @@ class WosCrawler:
             time.sleep(1 / self.efficiency)
         except Exception as e:
             print("No cookies prompt")
+
+    def continue_crawl(self, school, address):
+        """断点续爬"""
+        # 统计已有数据量
+        try:
+            conn = sqlite3.connect('data.db')
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT COUNT(*) FROM {} WHERE address = ?;
+            '''.format(school), (address,))
+            existing_count = cursor.fetchone()[0]
+        except Exception as e:
+            print("Error fetching existing count:", e)
+        finally:
+            conn.close()
+            if existing_count:
+                return existing_count // 50
 
     def crawl(self):
         # 主爬取逻辑
@@ -322,11 +373,12 @@ class WosCrawler:
         count = 0
         for info in infos:
             school, address, _, _, _ = info
-            try:
-                success = self.crawl_address(school, address)
-            except Exception as e:
-                print(f"{address} Failed Totally:\n{e}")
-                continue
+            success = self.crawl_address(school, address)
+            # try:
+            #     success = self.crawl_address(school, address)
+            # except Exception as e:
+            #     print(f"{address} Failed Totally:\n{e}")
+            #     continue
             if success:
                 count += 1
             if self.once_want and count >= self.once_want:
