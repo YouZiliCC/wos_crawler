@@ -149,7 +149,7 @@ class WosCrawler:
                 # crawl
                 crawled_count += self.crawl_page(school, address)
                 print(f"{address}:\t{i}/{page_count}-{crawled_count}/{result_count}")
-                self.next_page_b()
+                self.next_page()
         if result_count <= page_count * 50:
             self.set_crawled(address, url=base_url, result_count=result_count, page_count=page_count)
             print(f"{address} Successed")
@@ -211,11 +211,11 @@ class WosCrawler:
             except:
                 pass
             # 开始爬取各字段
-            WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located(
-                    (By.XPATH, title_xpath)
-                )
-            )
+            # WebDriverWait(self.driver, 10).until(
+            #    EC.presence_of_element_located(
+            #        (By.XPATH, title_xpath)
+            #    )
+            #)
             title = self.driver.find_element(By.XPATH, title_xpath).text
             wos_id = self.driver.find_element(By.XPATH, wos_id_xpath).get_attribute('href').split('WOS:')[-1]
             # //app-records-list/app-record//a[@class='mat-mdc-tooltip-trigger authors ng-star-inserted']//span
@@ -304,19 +304,13 @@ class WosCrawler:
         finally:
             conn.close()
 
-    def next_page_t(self):
-        # //button[@aria-label="Top Next Page"]
-        next_button = self.driver.find_element(By.XPATH, "//button[@aria-label='Top Next Page']")
-        try:
-            self.driver.execute_script("arguments[0].scrollIntoView();", next_button)
-            time.sleep(0.2 / self.efficiency)
-            next_button.click()
-        except Exception as e:
-            self.driver.execute_script("arguments[0].click();", next_button)
-
-    def next_page_b(self):
-        # //button[@aria-label="Bottom Next Page"]
-        next_button = self.driver.find_element(By.XPATH, "//button[@aria-label='Bottom Next Page']")
+    def next_page(self, direction='bottom'):
+        if direction == 'bottom':
+            # //button[@aria-label="Bottom Next Page"]
+            next_button = self.driver.find_element(By.XPATH, "//button[@aria-label='Bottom Next Page']")
+        else:
+            # //button[@aria-label="Top Next Page"]
+            next_button = self.driver.find_element(By.XPATH, "//button[@aria-label='Top Next Page']")
         try:
             self.driver.execute_script("arguments[0].scrollIntoView();", next_button)
             time.sleep(0.2 / self.efficiency)
@@ -386,5 +380,5 @@ class WosCrawler:
         self.driver.quit()
 
 if __name__ == "__main__":
-    crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
+    crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
     crawler.crawl()
