@@ -305,6 +305,14 @@ class WosCrawler:
             conn.commit()
         except Exception as e:
             print("Error saving data:", e)
+            for record in data:
+                try:
+                    cursor.execute('''
+                        INSERT INTO {} (address, title, authors, pub_date, conference, source, citations, refs, wos_id, abstract) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    '''.format(school), record)
+                    conn.commit()
+                except Exception as e:
+                    print("Error saving single record:", e)
         finally:
             conn.close()
 
