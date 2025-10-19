@@ -213,12 +213,18 @@ class WosCrawler:
                 btn.click()
             except:
                 pass
+            
             # 开始爬取各字段
-            WebDriverWait(self.driver, 10).until(
-               EC.presence_of_element_located(
-                   (By.XPATH, title_xpath)
-               )
-            )
+            try:
+                WebDriverWait(self.driver, 1).until(
+                    EC.presence_of_element_located(
+                        (By.XPATH, title_xpath)
+                    )
+                )
+            except:
+                # 避免正好翻不到，向下滑动一点再试
+                self.driver.execute_script("window.scrollBy(0, 1000);")
+
             title = self.driver.find_element(By.XPATH, title_xpath).text
             wos_id = self.driver.find_element(By.XPATH, wos_id_xpath).get_attribute('href').split('WOS:')[-1]
             # //app-records-list/app-record//a[@class='mat-mdc-tooltip-trigger authors ng-star-inserted']//span
@@ -328,7 +334,7 @@ class WosCrawler:
         page_input.clear()
         page_input.send_keys(str(page_num))
         page_input.send_keys('\n')
-        time.sleep(1 / self.efficiency)
+        time.sleep(5 / self.efficiency)
 
     def accept_cookies(self):
         try:
