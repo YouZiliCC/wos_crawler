@@ -45,8 +45,6 @@ Tsinghua Univ, Dept Sociol, Beijing, Peoples R China
 Tsinghua Univ, Inst Biopharmaceut & Hlth Engn, Tsinghua Shenzhen Int Grad Sch, Shenzhen, Peoples R China
 Tsinghua Univ, Sch Law, Law, Beijing, Peoples R China
 Tsinghua Univ, History Dept, Beijing, Peoples R China
-Tsinghua Univ, Dept Astron, Beijing 100084, Peoples R China
-Tsinghua Univ, Dept Phys, Beijing 100084, Peoples R China
 Tsinghua Univ, English, Beijing 100083, Peoples R China
 Tsinghua Univ, Beijing, Peoples R China
 Univ Chinese Acad Sci, Sch Artificial Intelligence, 95 Zhongguancun East Rd, Beijing 100190, Peoples R China
@@ -66,7 +64,6 @@ Tsinghua Univ, Inst Energy Environm & Econ, Beijing 100084, Peoples R China
 Tsinghua Univ, Dept Chem Engn, Beijing Key Lab Green Chem React Engn & Technol, Beijing 100084, Peoples R China
 Tsinghua Univ, Sichuan Energy Internet Res Inst, Chengdu, Peoples R China
 Tsinghua Univ, Dept Energy & Power Engn, Int Joint Lab Low Carbon Clean Energy Innovat, State Key Lab Power Syst, Beijing 100084, Peoples R China
-Tsinghua Univ, Dept Elect Engn, Beijing 100084, Peoples R China
 Tsinghua Univ, Inst Global Change Studies, Dept Earth Syst Sci, Minist Educ,Key Lab Earth Syst Modeling, Beijing 100084, Peoples R China
 Tsinghua Univ, Sch Environm, State Key Joint Lab Environm Simulat & Pollut Cont, Beijing, Peoples R China
 Tsinghua Univ, Inst Carbon Neutral, Beijing, Peoples R China
@@ -87,8 +84,6 @@ Tsinghua Univ, Natl Ctr Econ Res, Sch Econ & Management, Dept Econ, Beijing 1000
 Tsinghua Univ, Inst Int & Area Studies, Beijing, Peoples R China
 Tsinghua Univ, Sch Marxism, Beijing 100084, Peoples R China
 Tsinghua Univ, Leadership & Org Management, Beijing 100084, Peoples R China
-Tsinghua Univ, Sch Econ & Management, Weilun Bldg, Beijing 100084, Peoples R China
-Tsinghua Univ, Sch Econ & Management, Beijing 100084, Peoples R China
 Tsinghua Univ, Sch Econ & Management, Weilun Bldg, Beijing 100084, Peoples R China
 Tsinghua Univ, Sch Econ & Management, Beijing, Peoples R China
 Tsinghua Univ, Ctr Internet Dev & Governance, Sch Econ & Management, Beijing, Peoples R China
@@ -117,18 +112,13 @@ Tsinghua Univ, Tsinghua Shenzhen Int Grad Sch, Shenzhen 518055, Guangdong, Peopl
 Tsinghua Univ, Shenzhen Int Grad Sch, Tsinghua Berkeley Shenzhen Inst, Inst Data & Informat, Shenzhen 518055, Peoples R China
 Tsinghua Univ, Tsinghua Berkeley Shenzhen Inst, Inst Data & Informat, Tsinghua Shenzhen Int Grad Sch, Shenzhen 518055, Guangdong, Peoples R China
 Tsinghua Univ, Ctr Double Helix, Tsinghua Shenzhen Int Grad Sch, Shenzhen 518055, Guangdong, Peoples R China
-Tsinghua Univ, Tsinghua Shenzhen Int Grad Sch, Shenzhen 518055, Peoples R China
-Tsinghua Univ, Dept Elect Engn, Beijing 100084, Peoples R China
-Tsinghua Univ, Sch Architecture, Beijing 100084, Peoples R China
 Tsinghua Univ, Dept Civil Engn, Key Lab Civil Engn Safety & Durabil, China Educ Minist, Beijing
 Tsinghua Univ, Dept Civil Engn, Key Lab Civil Engn Safety & Durabil, China Educ Minist, Beijing 100084, Peoples R China
 Tsinghua Univ, Dept Energy & Power Engn, Key Lab Thermal Sci & Power Engn, Beijing Key Lab CO2 Utilizat & Reduct Technol,Mini, Beijing 100084, Peoples R China
 Tsinghua Univ, Dept Engn Mech, Key Lab Thermal Sci & Power Engn, Minist Educ, Beijing 100084, Peoples R China
 Tsinghua Univ, State Key Lab Automot Safety & Energy, Beijing 100084, Peoples R China
 Tsinghua Univ, Lab Low Carbon Energy, Beijing, Peoples R China
-Tsinghua Univ, Dept Math Sci, Beijing 100084, Peoples R China
 Tsinghua Univ, Tsinghua Inst Multidisciplinary Biomed Res, 7Life Sci Pk Rd, Zhongguancun Life Sci Pk, Beijing 102206, Peoples R China
-Tsinghua Univ, Beijing, Peoples R China
 Tsinghua Univ, Sch Software, TNLIST, Beijing 100084, Peoples R China
 Tsinghua Univ, Div Sports Sci & Phys Educ, Beijing 100084, Peoples R China
 Tsinghua Univ, Res & Conservat Ctr Unearthed Texts, Beijing, Peoples R China
