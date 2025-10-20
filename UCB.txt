@@ -35,7 +35,6 @@ Univ Calif Berkeley, Energy & Resources Grp, Berkeley, CA 94720 USA
 Univ Calif Berkeley, Dept Environm Sci Policy & Management, Berkeley, CA 94720 USA
 Univ Calif Berkeley, Dept Nutr Sci & Toxicol, Berkeley, CA 94720 USA
 Univ Calif Berkeley, Dept Nutr Sci & Toxicol, Grad Program Metab Biol, Berkeley, CA 94720 USA
-Univ Calif Berkeley, Dept Plant & Microbial Biol, Berkeley, CA 94720 USA
 Univ Calif Berkeley, Sch Optometry, Berkeley, CA USA
 Univ Calif Berkeley, Goldman Sch Publ Policy, Travers Dept Polit Sci, Berkeley, CA 94720 USA
 Univ Calif Berkeley, Sch Social Welf, Berkeley, CA 94720 USA
@@ -49,7 +48,6 @@ Univ Calif Berkeley, Dept Math, Berkeley, CA 94720 USA
 Univ Calif Berkeley, Dept Middle Eastern Languages & Cultures, Berkeley, CA 94720 USA
 Univ Calif Berkeley, Dept Bioengn, Berkeley, CA 94720 USA
 Univ Calif Berkeley, Dept Civil & Environm Engn, Berkeley, CA 94720 USA
-Univ Calif Berkeley, Dept Elect Engn & Comp Sci, Berkeley, CA 94720 USA
 Univ Calif Berkeley, Dept Ind Engn & Operat Res, Berkeley, CA 94720 USA
 Univ Calif Berkeley, Dept Mat Sci & Engn, Berkeley, CA 94720 USA
 Univ Calif Berkeley, Dept Mech Engn, Berkeley, CA 94720 USA
