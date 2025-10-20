@@ -101,4 +101,13 @@ with open('Harvard.txt', 'r') as file:
         ''', (address,))
 conn.commit()
 
+with open('UCB.txt', 'r') as file:
+    for line in file:
+        address = line.strip()
+        cursor.execute('''
+            INSERT INTO infos (school, address) VALUES
+            ('UCB', ?)
+        ''', (address,))
+conn.commit()
+
 conn.close()

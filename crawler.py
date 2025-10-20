@@ -419,27 +419,31 @@ class WosCrawler:
         infos = self.fetch_info()
         print(f"Remain to crawl: {len(infos)}")
         print(f"once_want: {self.once_want}")
-        if not infos:
-            print("---Finished---")
-            return
-        count = 0
-        for info in infos:
-            school, address, _, _, _ = info
-            success = self.crawl_address(school, address)
-            if success:
-                count += 1
-                time.sleep(5 / self.efficiency)
-            if self.once_want and count >= self.once_want:
-                break
-        self.driver.quit()
+        try:
+            if not infos:
+                print("---Finished---")
+                return
+            count = 0
+            for info in infos:
+                school, address, _, _, _ = info
+                success = self.crawl_address(school, address)
+                if success:
+                    count += 1
+                    time.sleep(5 / self.efficiency)
+                if self.once_want and count >= self.once_want:
+                    break
+        except Exception as e:
+            raise e
+        finally:
+            self.driver.quit()
 
 if __name__ == "__main__":
-    crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
-    crawler.crawl()
-    # while True:
-    #     try:
-    #         crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
-    #         crawler.crawl()
-    #     except Exception as e:
-    #         print("Error occurred:", e)
-    #         time.sleep(5)
+    # crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
+    # crawler.crawl()
+    while True:
+        try:
+            crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
+            crawler.crawl()
+        except Exception as e:
+            print("Error occurred:", e)
+            time.sleep(5)
