@@ -28,8 +28,9 @@ cursor.execute('''
         source TEXT,
         citations INTEGER,
         refs INTEGER,
-        wos_id TEXT UNIQUE,
-        abstract TEXT
+        wos_id TEXT,
+        abstract TEXT,
+        UNIQUE(address, wos_id)
     );
 ''')
 cursor.execute('''
@@ -43,8 +44,9 @@ cursor.execute('''
         source TEXT,
         citations INTEGER,
         refs INTEGER,
-        wos_id TEXT UNIQUE,
-        abstract TEXT
+        wos_id TEXT,
+        abstract TEXT,
+        UNIQUE(address, wos_id)
     );
 ''')
 cursor.execute('''
@@ -58,8 +60,9 @@ cursor.execute('''
         source TEXT,
         citations INTEGER,
         refs INTEGER,
-        wos_id TEXT UNIQUE,
-        abstract TEXT
+        wos_id TEXT,
+        abstract TEXT,
+        UNIQUE(address, wos_id)
     );
 ''')
 cursor.execute('''
@@ -73,8 +76,9 @@ cursor.execute('''
         source TEXT,
         citations INTEGER,
         refs INTEGER,
-        wos_id TEXT UNIQUE,
-        abstract TEXT
+        wos_id TEXT,
+        abstract TEXT,
+        UNIQUE(address, wos_id)
     );
 ''')
 conn.commit()

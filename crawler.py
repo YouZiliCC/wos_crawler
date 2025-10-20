@@ -4,13 +4,14 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 
 class WosCrawler:
     def __init__(self, efficiency=1, once_want=None, headless=True):
         self.total_address = 0
         self.total_url = 0
         self.total_crawled = 0
+        self.total_not_found = 0
         self.driver = self.init_driver(headless=headless)
         self.efficiency = efficiency # 控制爬取速度，sep_time = time / efficiency
         self.once_want = once_want # 每次想要爬取的数量，None表示全部爬取
@@ -93,7 +94,8 @@ class WosCrawler:
             cursor.execute('''
                 SELECT school, COUNT(address) AS address_count,
                     SUM(CASE WHEN url IS NOT NULL THEN 1 ELSE 0 END) AS url_count,
-                    SUM(CASE WHEN crawled_or_not = 1 THEN 1 ELSE 0 END) AS crawled_count
+                    SUM(CASE WHEN crawled_or_not = 1 THEN 1 ELSE 0 END) AS crawled_count,
+                    SUM(CASE WHEN crawled_or_not = 2 THEN 1 ELSE 0 END) AS not_found_count
                 FROM infos
                 GROUP BY school
             ''')
@@ -105,11 +107,12 @@ class WosCrawler:
             conn.close()
 
         for row in results:
-            print(f"{row[0]}, Address: {row[1]}, URL: {row[2]}/{row[1]}, Crawled: {row[3]}/{row[1]}")
+            print(f"{row[0]}, Address: {row[1]}, URL: {row[2]}, Crawled: {row[3]}/{row[1]}, Not Found: {row[4]}/{row[1]}")
             self.total_address += row[1]
             self.total_url += row[2]
             self.total_crawled += row[3]
-        print(f"Total, Address: {self.total_address}, URL: {self.total_url}, Crawled: {self.total_crawled}")
+            self.total_not_found += row[4]
+        print(f"Total, Address: {self.total_address}, URL: {self.total_url}, Crawled: {self.total_crawled}, Not Found: {self.total_not_found}")
 
         return self.total_address == self.total_crawled
 
@@ -126,6 +129,10 @@ class WosCrawler:
         search_button = self.driver.find_element(By.XPATH, "//div[@class='upper-search-preview-holder']//div[@class='button-row adv ng-star-inserted']//button[@mat-ripple-loader-class-name='mat-mdc-button-ripple'][2]")
         search_button.click()
         time.sleep(1 / self.efficiency)
+        if not self.check_search_results():
+            print(f"{address} No results found.")
+            self.set_crawled(address, url='', result_count=0, page_count=0, crawled_or_not=2)
+            return True
         WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//span[@class='brand-blue']"))
         )
@@ -136,8 +143,12 @@ class WosCrawler:
         time.sleep(0.5 / self.efficiency)
         
         crawled_count = 0
+        # 断点续爬
         crawled_page_count = self.continue_crawl(school, address)
-        self.to_page(crawled_page_count + 1 if crawled_page_count else 0)
+        if crawled_page_count:
+            self.to_page(crawled_page_count + 1)
+        else:
+            crawled_page_count = 0
         # 开始翻页爬取
         for i in range(1, page_count + 1):
             if crawled_page_count and i <= crawled_page_count:
@@ -170,13 +181,25 @@ class WosCrawler:
             print(f"{address} Failed")
             return False
         
-    def set_crawled(self, address, url=None, result_count=None, page_count=None):
+    def check_search_results(self):
+        # //div[contains(@class,'search-error')]
+        try:
+            WebDriverWait(self.driver, 3).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, "//div[contains(@class,'search-error')]")
+                )
+            )
+            return False
+        except TimeoutException:
+            return True
+
+    def set_crawled(self, address, url=None, result_count=None, page_count=None, crawled_or_not=1):
         try:
             conn = sqlite3.connect('data.db')
             cursor = conn.cursor()
             cursor.execute('''
-                UPDATE infos SET crawled_or_not = 1, url = ?, result_count = ?, page_count = ? WHERE address = ?;
-            ''', (url, result_count, page_count, address))
+                UPDATE infos SET crawled_or_not = ?, url = ?, result_count = ?, page_count = ? WHERE address = ?;
+            ''', (crawled_or_not, url, result_count, page_count, address))
             conn.commit()
         except Exception as e:
             conn.rollback()
@@ -403,11 +426,6 @@ class WosCrawler:
         for info in infos:
             school, address, _, _, _ = info
             success = self.crawl_address(school, address)
-            # try:
-            #     success = self.crawl_address(school, address)
-            # except Exception as e:
-            #     print(f"{address} Failed Totally:\n{e}")
-            #     continue
             if success:
                 count += 1
                 time.sleep(5 / self.efficiency)
@@ -416,12 +434,12 @@ class WosCrawler:
         self.driver.quit()
 
 if __name__ == "__main__":
-    # crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
-    # crawler.crawl()
-    while True:
-        try:
-            crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
-            crawler.crawl()
-        except Exception as e:
-            print("Error occurred:", e)
-            time.sleep(5)
+    crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
+    crawler.crawl()
+    # while True:
+    #     try:
+    #         crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
+    #         crawler.crawl()
+    #     except Exception as e:
+    #         print("Error occurred:", e)
+    #         time.sleep(5)
