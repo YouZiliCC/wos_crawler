@@ -46,8 +46,8 @@ class WosCrawler:
     def restart_driver(self, headless=True):
         try:
             self.driver.quit()
-        except:
-            pass
+        except Exception as e:
+            print("Error quitting driver:", e)
         print("Restart driver")
         self.driver = self.init_driver(headless=headless)
 
@@ -61,7 +61,7 @@ class WosCrawler:
         3. url: 机构对应的 WOS 地址
         4. result_count: 该机构的结果总数
         5. page_count: 该机构的结果总页数
-        6. crawled_or_not: 是否已爬取，0 未爬取，1 已爬取
+        6. crawled_or_not: 是否已爬取，0 未爬取，1 已爬取，2 无结果
         """
         if self.check_info():
             print("All institutions have been crawled.")
@@ -117,22 +117,9 @@ class WosCrawler:
         return self.total_address == self.total_crawled
 
     def crawl_address(self, school, address):
-        self.driver.get("https://webofscience.clarivate.cn/wos/woscc/advanced-search")
-        self.accept_cookies()
-        time.sleep(1 / self.efficiency)
-        # 构建检索式
-        AD = f"AD=({address})"
-        search_box = self.driver.find_element(By.XPATH, "//textarea")
-        search_box.clear()
-        search_box.send_keys(AD)
-        # 点击检索
-        search_button = self.driver.find_element(By.XPATH, "//div[@class='upper-search-preview-holder']//div[@class='button-row adv ng-star-inserted']//button[@mat-ripple-loader-class-name='mat-mdc-button-ripple'][2]")
-        search_button.click()
-        time.sleep(1 / self.efficiency)
-        if not self.check_search_results():
-            print(f"{address} No results found.")
-            self.set_crawled(address, url='', result_count=0, page_count=0, crawled_or_not=2)
+        if self.search_address(address):
             return True
+        # 等待结果加载
         WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//span[@class='brand-blue']"))
         )
@@ -164,7 +151,18 @@ class WosCrawler:
                 page_data = self.crawl_page(address)
                 crawled_count_plus = self.save_data(page_data, school)
                 if not crawled_count_plus: # 保存失败，如冲突
-                    self.to_page(i) # 回到当前页重试
+                    if i > 1:
+                        self.to_page(i) # 回到当前页重试
+                    self.driver.refresh()
+                    time.sleep(2 / self.efficiency)
+                    page_data = self.crawl_page(address)
+                    crawled_count_plus = self.save_data(page_data, school)
+                if not crawled_count_plus:
+                    self.restart_driver(headless=True)
+                    self.search_address(address)
+                    if i > 1:
+                        self.to_page(i)
+                    time.sleep(2 / self.efficiency)
                     page_data = self.crawl_page(address)
                     crawled_count_plus = self.save_data(page_data, school)
                 if not crawled_count_plus:
@@ -180,7 +178,25 @@ class WosCrawler:
         else:
             print(f"{address} Failed")
             return False
-        
+    
+    def search_address(self, address):
+        self.driver.get("https://webofscience.clarivate.cn/wos/woscc/advanced-search")
+        self.accept_cookies()
+        time.sleep(1 / self.efficiency)
+        # 构建检索式
+        AD = f"AD=({address})"
+        search_box = self.driver.find_element(By.XPATH, "//textarea")
+        search_box.clear()
+        search_box.send_keys(AD)
+        # 点击检索
+        search_button = self.driver.find_element(By.XPATH, "//div[@class='upper-search-preview-holder']//div[@class='button-row adv ng-star-inserted']//button[@mat-ripple-loader-class-name='mat-mdc-button-ripple'][2]")
+        search_button.click()
+        time.sleep(1 / self.efficiency)
+        if not self.check_search_results():
+            print(f"{address} No results found.")
+            self.set_crawled(address, url='', result_count=0, page_count=0, crawled_or_not=2)
+            return True
+
     def check_search_results(self):
         # //div[contains(@class,'search-error')]
         try:
@@ -438,12 +454,12 @@ class WosCrawler:
             self.driver.quit()
 
 if __name__ == "__main__":
-    # crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
-    # crawler.crawl()
-    while True:
-        try:
-            crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
-            crawler.crawl()
-        except Exception as e:
-            print("Error occurred:", e)
-            time.sleep(5)
+    crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
+    crawler.crawl()
+    # while True:
+    #     try:
+    #         crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
+    #         crawler.crawl()
+    #     except Exception as e:
+    #         print("Error occurred:", e)
+    #         time.sleep(5)
