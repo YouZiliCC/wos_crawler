@@ -12,6 +12,7 @@ class WosCrawler:
         self.total_url = 0
         self.total_crawled = 0
         self.total_not_found = 0
+        self.headless = headless
         self.driver = self.init_driver(headless=headless)
         self.efficiency = efficiency # 控制爬取速度，sep_time = time / efficiency
         self.once_want = once_want # 每次想要爬取的数量，None表示全部爬取
@@ -158,7 +159,7 @@ class WosCrawler:
                     page_data = self.crawl_page(address)
                     crawled_count_plus = self.save_data(page_data, school)
                 if not crawled_count_plus:
-                    self.restart_driver(headless=True)
+                    self.restart_driver(headless=self.headless)
                     self.search_address(address)
                     if i > 1:
                         self.to_page(i)
@@ -454,12 +455,12 @@ class WosCrawler:
             self.driver.quit()
 
 if __name__ == "__main__":
-    crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
-    crawler.crawl()
-    # while True:
-    #     try:
-    #         crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
-    #         crawler.crawl()
-    #     except Exception as e:
-    #         print("Error occurred:", e)
-    #         time.sleep(5)
+    # crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
+    # crawler.crawl()
+    while True:
+        try:
+            crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
+            crawler.crawl()
+        except Exception as e:
+            print("Error occurred:", e)
+            time.sleep(25)
