@@ -263,16 +263,16 @@ class WosCrawler:
             except:
                 pass
             
-            # 开始爬取各字段
-            try:
-                WebDriverWait(self.driver, 1).until(
-                    EC.presence_of_element_located(
-                        (By.XPATH, title_xpath)
+            # 开始爬取各字段，避免正好翻不到，向下滑动一点再试
+            for _ in range(3):
+                try:
+                    WebDriverWait(self.driver, 1).until(
+                        EC.presence_of_element_located(
+                            (By.XPATH, title_xpath)
+                        )
                     )
-                )
-            except:
-                # 避免正好翻不到，向下滑动一点再试
-                self.driver.execute_script("window.scrollBy(0, 1000);")
+                except:
+                    self.driver.execute_script("window.scrollBy(0, 1000);")
 
             title = self.driver.find_element(By.XPATH, title_xpath).text
             wos_id = self.driver.find_element(By.XPATH, wos_id_xpath).get_attribute('href').split('WOS:')[-1]
