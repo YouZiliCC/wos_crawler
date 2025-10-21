@@ -2,6 +2,7 @@ import sqlite3
 
 conn = sqlite3.connect('data.db')
 cursor = conn.cursor()
+schools = ['THU', 'UCB', 'Harvard']
 
 # 创建表 infos
 cursor.execute('''
@@ -17,97 +18,32 @@ cursor.execute('''
 ''')
 
 # 创建表PKU,THU,UCB,Harvard
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS PKU (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        address TEXT,
-        title TEXT,
-        authors TEXT,
-        pub_date TEXT,
-        conference TEXT,
-        source TEXT,
-        citations INTEGER,
-        refs INTEGER,
-        wos_id TEXT,
-        abstract TEXT,
-        UNIQUE(address, wos_id)
-    );
-''')
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS THU (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        address TEXT,
-        title TEXT,
-        authors TEXT,
-        pub_date TEXT,
-        conference TEXT,
-        source TEXT,
-        citations INTEGER,
-        refs INTEGER,
-        wos_id TEXT,
-        abstract TEXT,
-        UNIQUE(address, wos_id)
-    );
-''')
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS UCB (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        address TEXT,
-        title TEXT,
-        authors TEXT,
-        pub_date TEXT,
-        conference TEXT,
-        source TEXT,
-        citations INTEGER,
-        refs INTEGER,
-        wos_id TEXT,
-        abstract TEXT,
-        UNIQUE(address, wos_id)
-    );
-''')
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS Harvard (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        address TEXT,
-        title TEXT,
-        authors TEXT,
-        pub_date TEXT,
-        conference TEXT,
-        source TEXT,
-        citations INTEGER,
-        refs INTEGER,
-        wos_id TEXT,
-        abstract TEXT,
-        UNIQUE(address, wos_id)
-    );
-''')
-conn.commit()
+for school in schools:
+    cursor.execute(f'''
+        CREATE TABLE IF NOT EXISTS {school} (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            address TEXT,
+            title TEXT,
+            authors TEXT,
+            pub_date TEXT,
+            conference TEXT,
+            source TEXT,
+            citations INTEGER,
+            refs INTEGER,
+            wos_id TEXT,
+            abstract TEXT,
+            UNIQUE(address, wos_id)
+        );
+    ''')
+    conn.commit()
 
-with open('THU.txt', 'r') as file:
-    for line in file:
-        address = line.strip()
-        cursor.execute('''
-            INSERT INTO infos (school, address) VALUES
-            ('THU', ?)
-        ''', (address,))
-conn.commit()
-
-with open('Harvard.txt', 'r') as file:
-    for line in file:
-        address = line.strip()
-        cursor.execute('''
-            INSERT INTO infos (school, address) VALUES
-            ('Harvard', ?)
-        ''', (address,))
-conn.commit()
-
-with open('UCB.txt', 'r') as file:
-    for line in file:
-        address = line.strip()
-        cursor.execute('''
-            INSERT INTO infos (school, address) VALUES
-            ('UCB', ?)
-        ''', (address,))
-conn.commit()
+    with open(f'{school}.txt', 'r') as file:
+        for line in file:
+            address = line.strip()
+            cursor.execute('''
+                INSERT INTO infos (school, address) VALUES
+                (?, ?)
+            ''', (school, address))
+    conn.commit()
 
 conn.close()

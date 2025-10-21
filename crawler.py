@@ -1,3 +1,4 @@
+import os
 import time
 import sqlite3
 from selenium import webdriver
@@ -130,6 +131,11 @@ class WosCrawler:
         base_url = str(self.driver.current_url)[:-1]
         time.sleep(0.5 / self.efficiency)
         
+        # 超大量结果处理
+        if result_count >= 100000:
+            print(f"{address} Results exceed 100,000")
+            return self.crawl_address_large(school, address, result_count=result_count, page_count=page_count, base_url=base_url)
+
         crawled_count = 0
         # 断点续爬
         crawled_page_count = self.continue_crawl(school, address)
@@ -180,6 +186,173 @@ class WosCrawler:
             print(f"{address} Failed")
             return False
     
+    def crawl_address_large(self, school, address, result_count, page_count, base_url):
+        # //div[@data-ta="filter-section-PY"]//button[@data-ta="see-all"]
+        # //ul[@class="refine-options"]
+        # //ul[@class="refine-options"]//li
+        def select_year(year_id):
+            """选择年份"""
+            # //div[contains(@class,"refine-terms")]//button[@mat-button]
+            try:
+                WebDriverWait(self.driver, 2).until(
+                    EC.presence_of_element_located(
+                        (By.XPATH, '//div[contains(@class,"refine-terms")]//button[@mat-button]')
+                    )
+                )
+                self.driver.find_element(By.XPATH, '//div[contains(@class,"refine-terms")]//button[@mat-button]').click()
+                time.sleep(0.5 / self.efficiency)
+            except TimeoutException:
+                print("No year selected")
+            # 展开年份
+            try:
+                WebDriverWait(self.driver, 2).until(
+                    EC.presence_of_element_located(
+                        (By.XPATH, '//div[@data-ta="filter-section-PY"]//button[@data-ta="see-all"]')
+                    )
+                )
+                self.driver.find_element(By.XPATH, '//div[@data-ta="filter-section-PY"]//button[@data-ta="see-all"]').click()
+                time.sleep(0.5 / self.efficiency)
+            except TimeoutException:
+                print("Years already expanded")
+            # 选择年份
+            try:
+                WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located(
+                        (By.XPATH, f'//ul[@class="refine-options"]//li[{year_id}]')
+                    )
+                )
+                self.driver.find_element(By.XPATH, f'//ul[@class="refine-options"]//li[{year_id}]').click()
+            except Exception as e:
+                print("Error selecting year:", e)
+            try:
+                # //button[@data-ta="refine-submit"]
+                WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located(
+                        (By.XPATH, '//button[@data-ta="refine-submit"]')
+                    )
+                )
+                self.driver.find_element(By.XPATH, '//button[@data-ta="refine-submit"]').click()
+            except Exception as e:
+                print("Error clicking refine submit:", e)
+            # 等待结果加载
+            time.sleep(1 / self.efficiency)
+
+        # show all years
+        self.driver.find_element(By.XPATH, '//div[@data-ta="filter-section-PY"]//button[@data-ta="see-all"]').click()
+        if not os.path.exists(f'{address.replace(" ", "_")}.db'):
+            try:
+                # 临时数据库
+                conn = sqlite3.connect(f'{address.replace(" ", "_")}.db')
+                cursor = conn.cursor()
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS YP (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        year TEXT UNIQUE,
+                        year_result_count INTEGER,
+                        year_page_count INTEGER,
+                        crawled_page_count INTEGER DEFAULT 0,
+                        crawled_or_not INTEGER DEFAULT 0
+                    )
+                ''')
+                conn.commit()
+
+                WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located(
+                        (By.XPATH, '//ul[@class="refine-options"]//li')
+                    )
+                )
+                for i in range(len(self.driver.find_elements(By.XPATH, '//ul[@class="refine-options"]//li'))):
+                    time.sleep(0.1)
+                    year, year_result_count = self.driver.find_element(By.XPATH, f'//ul[@class="refine-options"]//li[{i+1}]').text.split('\n')
+                    cursor.execute('''
+                        INSERT INTO YP (year, year_result_count)
+                        VALUES (?, ?)
+                    ''', (str(year), int(year_result_count.replace(',', ''))))
+                    conn.commit()
+            except Exception as e:
+                conn.rollback()
+                print(f"{address} Failed")
+                print("Error creating db:", e)
+                return False
+            finally:
+                conn.close()
+        try:
+            conn = sqlite3.connect(f'{address.replace(" ", "_")}.db')
+            cursor = conn.cursor()
+            # 读取待爬年份
+            cursor.execute('SELECT id, year, year_result_count, crawled_page_count FROM YP WHERE crawled_or_not = 0')
+            rows = cursor.fetchall()
+            print(f"{address} Remain Years: {len(rows)}")
+            # 逐年爬取
+            for row in rows:
+                year_id, year, year_result_count, crawled_page_count = row
+                print(f"{year}-{address}")
+                # 选择年份
+                select_year(year_id)
+                # 等待结果加载
+                WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.XPATH, "//span[@class='brand-blue']"))
+                )
+                # 获取基本数据
+                year_page_count = int(self.driver.find_element(By.XPATH, "//span[@class='end-page ng-star-inserted']").text.replace(',', ''))
+                crawled_count = 0
+                # 逐页爬取
+                for i in range(1, year_page_count + 1):
+                    if crawled_page_count and i <= crawled_page_count:
+                        crawled_count += 50
+                        print(f"{year}-{address}:\t{i}/{year_page_count}-{crawled_count}/{year_result_count} (continued)")
+                    else:
+                        WebDriverWait(self.driver, 10).until(
+                            EC.presence_of_element_located(
+                                (By.XPATH, "//app-records-list")
+                            )
+                        )
+                        # crawl
+                        page_data = self.crawl_page(address)
+                        crawled_count_plus = self.save_data(page_data, school)
+                        if not crawled_count_plus: # 保存失败，如冲突
+                            if i > 1:
+                                self.to_page(i) # 回到当前页重试
+                            self.driver.refresh()
+                            time.sleep(2 / self.efficiency)
+                            page_data = self.crawl_page(address)
+                            crawled_count_plus = self.save_data(page_data, school)
+                        if not crawled_count_plus:
+                            self.restart_driver(headless=self.headless)
+                            self.search_address(address)
+                            select_year(year_id)
+                            if i > 1:
+                                self.to_page(i)
+                            time.sleep(2 / self.efficiency)
+                            page_data = self.crawl_page(address)
+                            crawled_count_plus = self.save_data(page_data, school)
+                        if not crawled_count_plus:
+                            print(f"{year}-{address} Failed saving data on page {i}")
+                            crawled_count_plus = self.save_data_single(page_data, school)
+                        crawled_count += crawled_count_plus
+                        print(f"{year}-{address}:\t{i}/{year_page_count}-{crawled_count}/{year_result_count}")
+                        self.next_page()
+                if year_result_count <= year_page_count * 50:
+                    cursor.execute('''
+                        UPDATE YP SET crawled_or_not = 1, year_page_count = ?, crawled_page_count = ? WHERE year = ?;
+                    ''', (year_page_count, crawled_count // 50 + 1, year))
+                    conn.commit()
+                    print(f"{year}-{address} Successed")
+                else:
+                    print(f"{year}-{address} Failed")
+            self.set_crawled(address, url=base_url, result_count=result_count, page_count=page_count)
+            return True
+        except Exception as e:
+            cursor.execute('''
+                UPDATE YP SET crawled_or_not = 0, year_page_count = ?, crawled_page_count = ? WHERE year = ?;
+            ''', (year_page_count, crawled_count // 50, year))
+            conn.commit()
+            print("Error in crawl_address_large:", e)
+            print(f"{year}-{address} Failed")
+            return False
+        finally:
+            conn.close()
+
     def search_address(self, address):
         self.driver.get("https://webofscience.clarivate.cn/wos/woscc/advanced-search")
         self.accept_cookies()
@@ -436,6 +609,8 @@ class WosCrawler:
         infos = self.fetch_info()
         print(f"Remain to crawl: {len(infos)}")
         print(f"once_want: {self.once_want}")
+        print(f"efficiency: {self.efficiency}")
+        print("----------------")
         try:
             if not infos:
                 print("---Finished---")
