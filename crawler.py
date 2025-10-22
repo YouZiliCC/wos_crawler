@@ -295,6 +295,8 @@ class WosCrawler:
                 )
                 # 获取基本数据
                 year_page_count = int(self.driver.find_element(By.XPATH, "//span[@class='end-page ng-star-inserted']").text.replace(',', ''))
+                if crawled_page_count:
+                    self.to_page(crawled_page_count + 1)
                 crawled_count = 0
                 # 逐页爬取
                 for i in range(1, year_page_count + 1):
@@ -630,12 +632,12 @@ class WosCrawler:
             self.driver.quit()
 
 if __name__ == "__main__":
-    # crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
-    # crawler.crawl()
-    while True:
-        try:
-            crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
-            crawler.crawl()
-        except Exception as e:
-            print("Error occurred:", e)
-            time.sleep(25)
+    crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
+    crawler.crawl()
+    # while True:
+    #     try:
+    #         crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
+    #         crawler.crawl()
+    #     except Exception as e:
+    #         print("Error occurred:", e)
+    #         time.sleep(25)
