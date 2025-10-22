@@ -81,7 +81,6 @@ Harvard Univ, Dept Sociol, 79 JFK St, Cambridge, MA 02138 USA
 Harvard Univ, Dept Sociol, Cambridge, MA 02138 USA
 Harvard Med Sch, Boston, MA 02115 USA
 Harvard Univ, Sch Med, Boston, MA 02115 USA
-HARVARD MEDICAL SCHOOL
 Harvard Medical School
 Harvard Med Sch, Boston, MA USA
 Harvard Med Sch, Dept Biol Chem & Mol Pharmacol, Boston, MA 02115 USA
