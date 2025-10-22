@@ -347,9 +347,9 @@ class WosCrawler:
                 UPDATE YP SET crawled_or_not = 0, year_page_count = ?, crawled_page_count = ? WHERE year = ?;
             ''', (year_page_count, crawled_count // 50, year))
             conn.commit()
-            print("Error in crawl_address_large:", e)
             print(f"{year}-{address} Failed")
-            return False
+            print("Error in crawl_address_large:")
+            raise e
         finally:
             conn.close()
 
