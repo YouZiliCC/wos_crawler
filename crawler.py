@@ -133,8 +133,10 @@ class WosCrawler:
         
         # 超大量结果处理
         if result_count >= 100000:
-            print(f"{address} Results exceed 100,000")
+            print(f"{address} Results {result_count} exceed")
             return self.crawl_address_large(school, address, result_count=result_count, page_count=page_count, base_url=base_url)
+        else:
+            print(f"{address} Results {result_count}")
 
         crawled_count = 0
         # 断点续爬
