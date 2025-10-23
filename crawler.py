@@ -337,7 +337,7 @@ class WosCrawler:
                 if year_result_count <= year_page_count * 50:
                     cursor.execute('''
                         UPDATE YP SET crawled_or_not = 1, year_page_count = ?, crawled_page_count = ? WHERE year = ?;
-                    ''', (year_page_count, crawled_count // 50 + 1, year))
+                    ''', (year_page_count, i, year))
                     conn.commit()
                     print(f"{year}-{address} Successed")
                 else:
@@ -347,7 +347,7 @@ class WosCrawler:
         except Exception as e:
             cursor.execute('''
                 UPDATE YP SET crawled_or_not = 0, year_page_count = ?, crawled_page_count = ? WHERE year = ?;
-            ''', (year_page_count, crawled_count // 50, year))
+            ''', (year_page_count, i - 1, year))
             conn.commit()
             print(f"{year}-{address} Failed")
             print("Error in crawl_address_large:")
@@ -632,12 +632,12 @@ class WosCrawler:
             self.driver.quit()
 
 if __name__ == "__main__":
-    crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
-    crawler.crawl()
-    # while True:
-    #     try:
-    #         crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
-    #         crawler.crawl()
-    #     except Exception as e:
-    #         print("Error occurred:", e)
-    #         time.sleep(25)
+    # crawler = WosCrawler(efficiency=1, once_want=None, headless=False)
+    # crawler.crawl()
+    while True:
+        try:
+            crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
+            crawler.crawl()
+        except Exception as e:
+            print("Error occurred:", e)
+            time.sleep(25)
