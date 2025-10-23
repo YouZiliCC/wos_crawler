@@ -359,8 +359,12 @@ class WosCrawler:
 
     def search_address(self, address):
         self.driver.get("https://webofscience.clarivate.cn/wos/woscc/advanced-search")
+        time.sleep(1 / self.efficiency)
         self.accept_cookies()
         time.sleep(1 / self.efficiency)
+        WebDriverWait(self.driver, 3).until(
+            EC.presence_of_element_located((By.XPATH, "//textarea"))
+        )
         # 构建检索式
         AD = f"AD=({address})"
         search_box = self.driver.find_element(By.XPATH, "//textarea")
