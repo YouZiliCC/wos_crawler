@@ -587,10 +587,13 @@ class WosCrawler:
 
     def accept_cookies(self):
         try:
-            accept_button = WebDriverWait(self.driver, 5).until(
+            WebDriverWait(self.driver, 5).until(
                 EC.element_to_be_clickable((By.XPATH, "//button[@id='onetrust-accept-btn-handler']"))
             )
-            accept_button.click()
+            try:
+                self.driver.find_element(By.XPATH, "//button[@id='onetrust-accept-btn-handler']").click()
+            except Exception:
+                self.driver.execute_script("arguments[0].click();", self.driver.find_element(By.XPATH, "//button[@id='onetrust-accept-btn-handler']"))
             time.sleep(1 / self.efficiency)
         except TimeoutException:
             print("No cookies prompt")
