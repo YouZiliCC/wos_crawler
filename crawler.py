@@ -625,7 +625,7 @@ class WosCrawler:
         try:
             if not infos:
                 print("---Finished---")
-                return
+                return True
             count = 0
             for info in infos:
                 school, address, _, _, _ = info
@@ -646,7 +646,9 @@ if __name__ == "__main__":
     while True:
         try:
             crawler = WosCrawler(efficiency=1, once_want=None, headless=True)
-            crawler.crawl()
+            if crawler.crawl():
+                print("All done!")
+                break
         except Exception as e:
             print("Error occurred:", e)
             time.sleep(25)
