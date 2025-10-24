@@ -592,7 +592,7 @@ class WosCrawler:
             )
             accept_button.click()
             time.sleep(1 / self.efficiency)
-        except Exception as e:
+        except TimeoutException:
             print("No cookies prompt")
 
     def continue_crawl(self, school, address):
