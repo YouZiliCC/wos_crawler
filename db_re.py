@@ -2,7 +2,7 @@ import sqlite3
 
 conn = sqlite3.connect('data.db')
 cursor = conn.cursor()
-schools = ['THU', 'UCB', 'Harvard']
+schools = ['PKU', 'THU', 'UCB', 'Harvard']
 
 # 创建表 infos
 cursor.execute('''
